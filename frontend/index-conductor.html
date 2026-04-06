@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoLogistics - Perfil Conductor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --ipad-gray: #aeb1b4;
+            --ipad-orange: #ff9500;
+            --ipad-green: #34c759;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; }
+
+        /* Estilos de la lista */
+        #lista-paradas { transition: all 0.5s ease; display: flex; flex-direction: column; }
+        .stop-item {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .stop-item.active-stop { border-left: 5px solid var(--ipad-orange); background: #fff9f2; }
+        .stop-item.completed-stop { opacity: 0.6; background: #f8f9fa; order: 2; }
+        
+        /* Pines estilo iPad */
+        .pin-ios {
+            width: 20px;
+            height: 20px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: background 0.3s ease;
+        }
+        .pin-gray { background: var(--ipad-gray); }
+        .pin-orange { background: var(--ipad-orange); scale: 1.2; }
+        .pin-green { background: var(--ipad-green); }
+
+        .progress-custom { height: 6px; background: #eee; border-radius: 10px; margin-top: 10px; }
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
+
+        .main-content { padding: 20px; }
+        .sidebar { min-width: 250px; background: white; height: 100vh; border-right: 1px solid #eee; position: fixed; }
+        .main-content { margin-left: 250px; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar p-3">
+        <div class="logo-container mb-4">
+            <i class="bi bi-recycle text-success fs-3"></i>
+            <span class="fw-bold fs-4 ms-2">EcoLogistics</span>
+        </div>
+        <nav class="nav flex-column">
+            <a class="nav-link active text-dark" href="#"><i class="bi bi-geo-alt-fill me-2"></i> Mapa de Residuos</a>
+            <a class="nav-link text-dark" href="#" onclick="abrirModalManual()"><i class="bi bi-exclamation-triangle me-2"></i> Reportar Incidencia</a>
+            <a class="nav-link text-dark" href="#"><i class="bi bi-person me-2"></i> Mi Perfil</a>
+        </nav>
+    </div>
+
+    <main class="main-content">
+        <div class="card map-card shadow-lg border-0 overflow-hidden">
+            <div class="card-header bg-white py-3 d-flex justify-content-between border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-truck me-2 text-success"></i>Consola del Conductor</h5>
+                <span id="filtro-estado" class="badge bg-secondary">Modo Espera</span>
+            </div>
+            
+            <div class="d-flex flex-column flex-md-row">
+                <div id="map" style="height: 600px; flex-grow: 1;"></div>
+
+                <div id="panel-ruta" class="bg-light border-start p-3 d-none" style="width: 380px; overflow-y: auto; max-height: 600px;">
+                    <h6 class="fw-bold mb-3">Itinerario de Recogida (8 paradas)</h6>
+                    <div id="lista-paradas"></div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white border-0 py-4 text-center">
+                <div class="d-flex justify-content-center gap-3">
+                    <button id="btn-en-ruta" class="btn btn-lg btn-primary px-5 rounded-pill" onclick="iniciarRuta()">Comenzar Jornada</button>
+                    <button id="btn-finalizar" class="btn btn-lg btn-outline-danger d-none rounded-pill" onclick="location.reload()">Finalizar</button>
+                    <button class="btn btn-lg btn-warning px-4 rounded-pill text-dark fw-bold" onclick="abrirModalManual()">
+                        <i class="bi bi-plus-circle me-2"></i>Incidencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="modalIncidencia" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Reportar Incidencia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold">UBICACIÓN</label>
+                        <input type="text" id="container-id-display" class="form-control border-0 bg-light rounded-3" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold">EVIDENCIA VISUAL</label>
+                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3">
+                            <label for="foto-incidencia" class="btn btn-dark btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; cursor: pointer;">
+                                <i class="bi bi-camera-fill fs-4"></i>
+                            </label>
+                            <input type="file" id="foto-incidencia" accept="image/*" capture="environment" style="display: none;" onchange="previewFoto(this)">
+                            <span id="file-name" class="small text-muted">Tocar para tomar foto</span>
+                            <img id="preview-img" src="#" alt="Vista previa" class="d-none rounded-2" style="width: 50px; height: 50px; object-fit: cover;">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold">DESCRIPCIÓN</label>
+                        <textarea class="form-control border-0 bg-light rounded-3" rows="3" placeholder="Escribe aquí el problema..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-success py-3 fw-bold rounded-3" data-bs-dismiss="modal">Enviar Reporte</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7032], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+        let paradas = [
+            { id: 1, direccion: "Calle Mayor, 10", lat: 40.4167, lng: -3.7032, llenado: 85, estado: 'pendiente' },
+            { id: 2, direccion: "Plaza de España, 2", lat: 40.4233, lng: -3.7121, llenado: 70, estado: 'pendiente' },
+            { id: 3, direccion: "Gran Vía, 45", lat: 40.4203, lng: -3.7039, llenado: 95, estado: 'pendiente' },
+            { id: 4, direccion: "Calle de Alcalá, 12", lat: 40.4189, lng: -3.6995, llenado: 40, estado: 'pendiente' },
+            { id: 5, direccion: "Paseo del Prado, 8", lat: 40.4146, lng: -3.6925, llenado: 65, estado: 'pendiente' },
+            { id: 6, direccion: "Atocha, 120", lat: 40.4085, lng: -3.6920, llenado: 80, estado: 'pendiente' },
+            { id: 7, direccion: "Calle Fuencarral, 30", lat: 40.4225, lng: -3.7015, llenado: 55, estado: 'pendiente' },
+            { id: 8, direccion: "Puerta de Toledo, 1", lat: 40.4070, lng: -3.7115, llenado: 90, estado: 'pendiente' }
+        ];
+
+        let marcadores = {};
+        let lineaRuta = null;
+
+        function actualizarInterfaz() {
+            const listaContainer = document.getElementById('lista-paradas');
+            listaContainer.innerHTML = '';
+
+            const ordenadas = [...paradas].sort((a, b) => {
+                if (a.estado === 'recogido' && b.estado !== 'recogido') return 1;
+                if (a.estado !== 'recogido' && b.estado === 'recogido') return -1;
+                return 0;
+            });
+
+            ordenadas.forEach((p) => {
+                const colorBarra = p.llenado > 75 ? '#ff3b30' : '#34c759';
+                const isActive = p.estado === 'seleccionado' ? 'active-stop' : '';
+                const isDone = p.estado === 'recogido' ? 'completed-stop' : '';
+
+                listaContainer.innerHTML += `
+                    <div class="stop-item shadow-sm ${isActive} ${isDone}" onclick="seleccionarParada(${p.id})">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold d-block">${p.direccion}</span>
+                                <small class="text-muted">Contenedor #${p.id} • Llenado: ${p.llenado}%</small>
+                            </div>
+                            ${p.estado !== 'recogido' ? 
+                                `<i class="bi bi-check-circle fs-3 text-secondary" onclick="event.stopPropagation(); completarParada(${p.id})"></i>` : 
+                                `<i class="bi bi-check-circle-fill fs-3 text-success"></i>`}
+                        </div>
+                        <div class="progress-custom">
+                            <div class="progress-fill" style="width: ${p.llenado}%; background: ${colorBarra}"></div>
+                        </div>
+                    </div>
+                `;
+
+                if (marcadores[p.id]) {
+                    let colorClase = 'pin-gray';
+                    if (p.estado === 'seleccionado') colorClase = 'pin-orange';
+                    if (p.estado === 'recogido') colorClase = 'pin-green';
+                    
+                    marcadores[p.id].setIcon(L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="pin-ios ${colorClase}"></div>`,
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 20]
+                    }));
+                }
+            });
+        }
+
+        function iniciarRuta() {
+            document.getElementById('panel-ruta').classList.remove('d-none');
+            document.getElementById('btn-en-ruta').classList.add('d-none');
+            document.getElementById('btn-finalizar').classList.remove('d-none');
+            document.getElementById('filtro-estado').innerText = "Ruta Activa";
+            document.getElementById('filtro-estado').className = "badge bg-primary";
+
+            const coords = paradas.map(p => [p.lat, p.lng]);
+            lineaRuta = L.polyline(coords, { color: '#007aff', weight: 4, dashArray: '10, 10' }).addTo(map);
+            map.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
+
+            paradas.forEach(p => {
+                const m = L.marker([p.lat, p.lng]).addTo(map);
+                m.on('click', () => seleccionarParada(p.id));
+                marcadores[p.id] = m;
+            });
+
+            actualizarInterfaz();
+        }
+
+        function seleccionarParada(id) {
+            paradas.forEach(p => {
+                if (p.estado !== 'recogido') p.estado = (p.id === id) ? 'seleccionado' : 'pendiente';
+            });
+            const p = paradas.find(x => x.id === id);
+            map.flyTo([p.lat, p.lng], 16);
+            actualizarInterfaz();
+        }
+
+        function completarParada(id) {
+            const p = paradas.find(x => x.id === id);
+            p.estado = 'recogido';
+            const siguiente = paradas.find(x => x.estado === 'pendiente');
+            if (siguiente) siguiente.estado = 'seleccionado';
+            actualizarInterfaz();
+        }
+
+        function abrirModalManual() {
+            const modalElement = document.getElementById('modalIncidencia');
+            const modalIncidencia = new bootstrap.Modal(modalElement);
+            document.getElementById('container-id-display').value = "Reporte General de Ruta";
+            modalIncidencia.show();
+        }
+
+        function previewFoto(input) {
+            const fileName = document.getElementById('file-name');
+            const preview = document.getElementById('preview-img');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    fileName.innerText = "Foto lista";
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>

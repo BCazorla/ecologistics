@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoLogistics - Reporte Ciudadano</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-green: #2ecc71;
+            --bg-light: #f8f9fa;
+            --dark-text: #2c3e50;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-light); 
+            color: var(--dark-text);
+        }
+
+        /* Header Minimalista */
+        .citizen-header {
+            background: white;
+            padding: 1.5rem;
+            border-bottom: 1px solid #edf2f7;
+            text-align: center;
+        }
+
+        /* Área de Cámara (Upload) */
+        .upload-card {
+            background: white;
+            border: 2px dashed #cbd5e0;
+            border-radius: 20px;
+            padding: 2.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .upload-card:active {
+            transform: scale(0.98);
+            background: #f0fff4;
+            border-color: var(--primary-green);
+        }
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            background: #e8f8f0;
+            color: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+        }
+
+        /* Formulario Estilizado */
+        .form-label-custom {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .input-custom {
+            border: 1px solid #edf2f7;
+            border-radius: 12px;
+            padding: 1rem;
+            background: white;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-report {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 1.2rem;
+            width: 100%;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 15px rgba(46, 204, 113, 0.2);
+        }
+
+        /* Status Pills */
+        .my-reports {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="citizen-header">
+        <div class="d-flex align-items-center justify-content-center">
+            <i class="bi bi-recycle text-success fs-3"></i>
+            <span class="ms-2 fw-bold fs-4">EcoLogistics</span>
+        </div>
+        <p class="text-muted small mb-0 mt-1">Cuidando Madrid juntos</p>
+    </header>
+
+    <div class="container pb-5">
+        <div class="upload-card" onclick="document.getElementById('camera-input').click()">
+            <div class="icon-circle">
+                <i class="bi bi-camera-fill"></i>
+            </div>
+            <h5 class="fw-bold">Reportar Incidencia</h5>
+            <p class="text-muted small px-4">Toca para tomar una foto del contenedor o residuo en la calle</p>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" hidden onchange="handleFile(this)">
+            <div id="preview-container" class="d-none mt-3">
+                <img id="img-preview" src="#" class="img-fluid rounded-3 shadow-sm" style="max-height: 150px;">
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label class="form-label-custom">¿QUÉ ESTÁ PASANDO?</label>
+            <select class="input-custom shadow-sm">
+                <option value="1">Contenedor Desbordado</option>
+                <option value="2">Residuos Voluminosos (Muebles)</option>
+                <option value="3">Contenedor Dañado / Roto</option>
+                <option value="4">Suciedad en los alrededores</option>
+            </select>
+
+            <label class="form-label-custom">UBICACIÓN ACTUAL</label>
+            <div class="position-relative">
+                <input type="text" class="input-custom shadow-sm" value="Detectando GPS..." id="location-input" readonly>
+                <i class="bi bi-geo-alt-fill text-danger position-absolute" style="right: 15px; top: 18px;"></i>
+            </div>
+
+            <button class="btn btn-report" onclick="sendReport()">
+                <i class="bi bi-send-fill me-2"></i> Enviar Reporte
+            </button>
+        </div>
+
+        <div class="my-reports shadow-sm">
+            <h6 class="fw-bold mb-3">Mis Reportes Recientes</h6>
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <div>
+                    <span class="d-block fw-600 small">Desbordamiento</span>
+                    <small class="text-muted">Hace 2 horas • C. Mayor</small>
+                </div>
+                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Enviado</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="d-block fw-600 small">Muebles abandonados</span>
+                    <small class="text-muted">Ayer • Plaza Sol</small>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Resuelto</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('img-preview').src = e.target.result;
+                    document.getElementById('preview-container').classList.remove('d-none');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Simulación de envío
+        function sendReport() {
+            const btn = document.querySelector('.btn-report');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                alert("¡Gracias! Tu reporte ha sido enviado al Centro de Control.");
+                window.location.reload();
+            }, 1500);
+        }
+
+        // Simulación de GPS
+        setTimeout(() => {
+            document.getElementById('location-input').value = "Calle Mayor, 14, Madrid";
+        }, 2000);
+    </script>
+</body>
+</html>
