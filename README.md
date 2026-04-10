@@ -1,39 +1,34 @@
-[cite_start]He estructurado la información para que cumpla con los **entregables exigidos** [cite: 86] [cite_start]y las **fases del proyecto** detalladas en tu documentación[cite: 40].
+# 🌍 EcoLogistics Web: Sistema Inteligente de Gestión de Residuos
+**Proyecto Final - Ingeniería de Software (ADGG086PO)** **Responsable Académico:** José Luis Martínez Vila  
+**Project Manager:** Angelina Caballero
 
 ---
 
-# EcoLogistics Web - Sistema Inteligente de Gestión de Residuos
+## 1. Definición del Proyecto (Fase 1)
+EcoLogistics Web es un Sistema de Información (SI) diseñado para optimizar la recogida de residuos urbanos mediante el análisis en tiempo real del nivel de llenado de contenedores y la participación ciudadana.
 
-## 1. Definición y Necesidad de Negocio
-[cite_start]Este proyecto resuelve la ineficiencia y los altos costes de la gestión de residuos urbanos[cite: 11]. [cite_start]El sistema permite la monitorización en tiempo real del llenado de contenedores, la optimización de rutas de recogida y el reporte de incidencias por parte de los ciudadanos[cite: 14, 15, 16, 17].
+## 2. Gestión del Capital Humano (Matriz de Asignación)
+Para la ejecución de las **140 horas lectivas**, he liderado un equipo de 20 profesionales bajo metodología **Extreme Programming (XP)**:
 
-## 2. Gestión de Recursos (Capital Humano)
-[cite_start]Como **Project Manager**, he gestionado una plantilla de 20 empleados distribuidos según sus competencias para maximizar la productividad[cite: 20, 22, 23]:
-
-| Perfil | Cantidad | [cite_start]Uso Estratégico y Tareas [cite: 24, 28, 30] |
+| Perfil | Cantidad | Tareas Clave |
 | :--- | :--- | :--- |
-| **Seniors (A)** | 5 | [cite_start]Arquitectura, seguridad, algoritmos complejos y tutoría técnica (XP)[cite: 27]. |
-| **Juniors (B)** | 10 | [cite_start]Desarrollo del grueso de la aplicación web (Frontend/Backend)[cite: 29]. |
-| **Trainees (C)** | 5 | [cite_start]Maquetación HTML/CSS, documentación y pruebas manuales[cite: 31]. |
+| **Seniors (A)** | 5 | Arquitectura, Seguridad, Algoritmo de Rutas y Mentoría. |
+| **Juniors (B)** | 10 | Desarrollo API Backend, Frontend y Pruebas Unitarias. |
+| **Trainees (C)** | 5 | Maquetación, Documentación y Pruebas de Usuario. |
 
-## 3. Metodología e Ingeniería Software
-[cite_start]Se ha adoptado una metodología híbrida para equilibrar la agilidad con el rigor documental exigido[cite: 34, 35]:
-* [cite_start]**Gestión Ágil**: Implementación de **Scrum** con Sprints de 2 semanas y uso de tableros **Kanban** (To Do / Doing / Done)[cite: 47].
-* [cite_start]**Ingeniería Web**: Arquitectura Cliente-Servidor que separa el Frontend (interfaz ciudadana) de la API de lógica (Backend)[cite: 70, 71].
-* [cite_start]**Extreme Programming (XP)**: Aplicación de **Pair Programming** (Senior + Trainee) para transferencia de conocimiento y refactorización continua[cite: 72, 74, 75].
+## 3. Ingeniería de Software y Metodología
+* **Metodología Híbrida:** Combinación de **Scrum** (Sprints de 2 semanas) con el rigor de la **Ingeniería Clásica**.
+* **Arquitectura:** Modelo Cliente-Servidor.
+* **Herramientas CASE:** Visual Studio Code (Lower-CASE) y GitHub (Control de versiones).
 
-## 4. Análisis y Diseño (Ingeniería CASE)
-[cite_start]El proyecto incluye el modelado de la solución antes de la construcción[cite: 51]:
-* [cite_start]**Diseño Orientado a Objetos**: Modelado de clases con **Herencia** (Usuario, Ciudadano, Administrador) y **Polimorfismo** en el método `reciclar()` según el tipo de residuo[cite: 54, 57, 58].
-* [cite_start]**Diseño Estructurado**: Algoritmo de rutas optimizadas utilizando estructuras de selección (SI nivel > 70%) e iteración[cite: 59, 62, 63, 64].
-* [cite_start]**Backlog**: Definición de Historias de Usuario para los interesados[cite: 45].
+## 4. Diseño y Lógica (Fase 2)
+* **Polimorfismo:** Implementación de herencia donde el método `reciclar()` varía según el tipo de residuo.
+* **Algoritmo de Rutas:** Lógica estructurada que prioriza contenedores con carga > 70%.
 
-## 5. Calidad y Cierre del Proyecto
-[cite_start]Para asegurar la entrega de un producto funcional y sin errores, se han seguido los siguientes pasos[cite: 78]:
-* [cite_start]**Plan de Pruebas**: Ejecución de pruebas unitarias (cálculo de rutas) y pruebas de sistema (registro de incidencias)[cite: 81, 82, 83].
-* [cite_start]**Presupuesto Temporal**: Proyecto ejecutado en un marco de **140 horas lectivas**[cite: 33].
-* [cite_start]**Tecnología**: Stack Web basado en HTML5, JS y bases de datos relacionales[cite: 36].
+## 5. Documentación y Calidad (Fase 4)
+* [Dossier Final del Proyecto](./EcologisticsWeb%20DossierFinal%20Acaballero.pdf)
+* [Planificación Semanas 0-7](./Proyecto%20EcoLogistics_ACaballero%20Semanas%200a7.pdf)
+* [Manual de Calidad y Usuario](./MANUAL_CALIDAD_USUARIO.md)
 
 ---
-[cite_start]**Responsable Académico:** José Luis Martínez Vila[cite: 5].
-[cite_start]**Responsable de Ejecución:** El Alumno (Project Manager)[cite: 6].
+*Este proyecto certifica la aplicación de los estándares de Ingeniería de Software requeridos.*
