@@ -1,0 +1,105 @@
+name: EcoLogistics CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 1. LINT: Comprobar estilo
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm install
+      - name: Run ESLint
+        run: npm run lint
+
+  # 2. TEST: Unitarios e Integración con Reporting
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm install
+      - name: Run Tests with Coverage
+        run: npm test -- --coverage
+      # REPORTING DE COBERTURA
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always() # Se sube aunque el test falle para poder analizar el error
+        with:
+          name: code-coverage-report
+          path: coverage/
+
+  # 3. SONAR: Calidad de código
+  sonar:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # 4. SECURITY SCAN: DAST con OWASP ZAP y Reporting
+  security-scan:
+    needs: sonar
+    runs-on: ubuntu-latest
+    steps:
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'https://staging.ecologistics.com'
+      # REPORTING DE SEGURIDAD
+      - name: Upload ZAP Security Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-security-report
+          path: 'report_html.html'
+
+  # 5. PERFORMANCE: Prueba de humo con k6
+  performance-smoke:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run k6 performance test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: ci/performance-test.js
+      # REPORTING DE RENDIMIENTO (Opcional si k6 genera salida local)
+      - name: Upload k6 Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            summary.json
+
+  # 6. BUILD: Docker
+  build:
+    needs: performance-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Image
+        run: docker build -t ecologistics:latest .
+
+  # 7. DEPLOY: Publicar y Desplegar
+  publish-deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Staging
+        run: ./ci/deploy-staging.sh
+      - name: Production Approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: ACaballero
