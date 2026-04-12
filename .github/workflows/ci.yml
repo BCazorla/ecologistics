@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Staging
-        run: ./ci/deploy-staging.sh
+        run: bash ./ci/deploy-staging.sh
       - name: Production Approval
         uses: trstringer/manual-approval@v1
         with:
