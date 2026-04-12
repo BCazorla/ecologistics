@@ -3,13 +3,13 @@ import { check, sleep } from 'k6';
 
 export const options = {
   thresholds: {
-    // Calidad: 95% de las peticiones < 500ms
+    // 95% de las peticiones < 500ms
     http_req_duration: ['p(95)<500'], 
-    // Seguridad: Tasa de error < 1%
+    // Tasa de error < 1%
     http_req_failed: ['rate<0.01'],   
   },
   stages: [
-    { duration: '30s', target: 20 }, // Prueba de humo: 20 usuarios virtuales
+    { duration: '30s', target: 20 }, // Humo: 20 usuarios por 30 segundos
   ],
 };
 
@@ -19,13 +19,10 @@ export default function () {
   sleep(1);
 }
 
-/**
- * Esta función es la que genera el archivo summary.json 
- * que tu workflow necesita para el reporte final.
- */
+// ESTO ES LO QUE ACABAS DE AÑADIR:
 export function handleSummary(data) {
   return {
-    'summary.json': JSON.stringify(data), // Crea el archivo para el artefacto
-    stdout: JSON.stringify(data, null, 2), // Muestra el resumen en los logs de GitHub
+    'summary.json': JSON.stringify(data), // Esto genera el archivo para el artifact
+    stdout: JSON.stringify(data, null, 2), // Esto muestra el resumen en la consola de GitHub
   };
 }
