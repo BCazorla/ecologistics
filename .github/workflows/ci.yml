@@ -93,9 +93,12 @@ jobs:
         run: docker build -t ecologistics:latest .
 
   # 7. DEPLOY: Publicar y Desplegar
-  publish-deploy:
+publish-deploy:
     needs: build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: . # <--- Agrega esto aquí
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to Staging
