@@ -1,0 +1,24 @@
+openapi: 3.0.0
+info:
+  title: EcoLogistics API
+  description: API para la gestión de logística sostenible
+  version: 1.0.0
+servers:
+  - url: https://api.ecologistics.com/v1
+paths:
+  /shipments:
+    get:
+      summary: Listado de envíos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de envíos obtenida con éxito
+        '401':
+          description: No autorizado
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
