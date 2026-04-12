@@ -1,3 +1,4 @@
 #!/bin/bash
-echo "Desplegando imagen Docker en el servidor de Staging..."
-# Aquí irían los comandos reales de tu hosting
+echo "Desplegando en ambiente de pruebas..."
+echo "Simulando despliegue exitoso para ecologistics"
+exit 0
